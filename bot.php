@@ -1,9 +1,8 @@
 <?php
-flush();
 
 error_reporting(0);
-define('API_KEY','1725860844:A45EOCjQ889SFS'); //توکن
-function bomb_Source($method,$datas=[]){
+define('API_KEY',"Token"); // توکن ربات (Robot token)
+function HectorBot($method,$datas=[]){
     $url = "https://api.telegram.org/bot".API_KEY."/".$method;
     $ch = curl_init();
     curl_setopt($ch,CURLOPT_URL,$url);
@@ -16,324 +15,433 @@ function bomb_Source($method,$datas=[]){
         return json_decode($res);
     }
 }
-
-function SendMessage($chatid,$text,$parsmde,$disable_web_page_preview,$keyboard){
-	bomb_Source('sendMessage',[
-	'chat_id'=>$chatid,
+//=================================================//Functions//
+function Send($chat_id,$text,$parse_mode,$keyboard){
+	HectorBot('sendMessage',[
+	'chat_id'=>$chat_id,
 	'text'=>$text,
-	'parse_mode'=>$parsmde,
-	'disable_web_page_preview'=>$disable_web_page_preview,
+	'parse_mode'=>$parse_mode,
 	'reply_markup'=>$keyboard
 	]);
+}
+function Edit($chatid,$message_id,$parsmde,$text,$keyboard){
+    HectorBot('editmessagetext',[ 
+    'chat_id'=>$chatid, 
+    'message_id'=>$message_id,
+    'text'=>$text,
+    'parse_mode'=>$parsmde,
+    'reply_markup'=>$keyboard
+	]);
 	}
-function ForwardMessage($KojaShe,$AzKoja,$KodomMSG)
+	function ForwardMessage($kojashe,$azkoja,$kodomMSG)
 {
-    bomb_Source('ForwardMessage',[
-        'chat_id'=>$KojaShe,
-        'from_chat_id'=>$AzKoja,
-        'message_id'=>$KodomMSG
-    ]);
+    HectorBot('ForwardMessage',[
+        'chat_id'=>$kojashe,
+        'from_chat_id'=>$azkoja,
+        'message_id'=>$kodomMSG
+        ]);
 }
-function deleteFolder($path){
-    if (is_dir($path) === true) {
-        $files = array_diff(scandir($path), array('.', '..'));
-        foreach ($files as $file)
-            deleteFolder(realpath($path) . '/' . $file);
-            
-        return rmdir($path);
-    } else if (is_file($path) === true)
-        return unlink($path);
- 
-    return false;
-}
-function save($filename,$TXTdata){
+function SendPhoto($chat_id, $photo, $caption, $messageid, $keyboard){
+	HectorBot('SendPhoto',[
+    'chat_id'=>$chat_id,
+    'photo'=>$photo,
+    'caption'=>$caption,
+    'reply_to_message_id'=>$messageid,
+    'reply_markup'=>$keyboard
+     ]);
+     }
+     function save($filename,$TXTdata){
 	$myfile = fopen($filename, "w") or die("Unable to open file!");
 	fwrite($myfile, "$TXTdata");
 	fclose($myfile);
 	}
-
-//============(config)==========
-$token = " "; // توکن ربات
-$channel = "@shirazsocial"; // آیدی کانال همراه @
-$bot_id = "XshirazsocialBOT"; // آیدی ربات بدون اتساین
-$admin1 = " "; // آیدی عددی ادمین
-$admin = ""; // آآیدی عددی ادمین دو
-$Apii = ""; //api. فالور رو بزارید
-//==============================
+	function Delete($chat_id,$message_id)
+{
+	HectorBot('deletemessage',['chat_id'=>$chat_id,'message_id'=>$message_id]);
+	}
+//=================================================//Config//
+$dev = "000000000";//ایدی عددی
+$token = API_KEY;
+$channel = "@shirazsocial";//ایدی چنل یا @ (id channel with @)
+$BotId = "shirazsocial"; // بدون@ایدی بات (id bot without @)
+$pic = "https://www.creativefabrica.com/wp-content/uploads/2019/02/Monogram-AP-Logo-Design-by-Greenlines-Studios-580x386.jpg";//لینک عکس
+//=================================================//Variables//
 $update = json_decode(file_get_contents("php://input"));
 $message = $update->message;
-$from_id = $update->message->from->id;
-$chat_id = $update->message->chat->id;
-$text = $update->message->text;
-$first_name = $message->from->first_name;
-$last_name = $message->from->last_name;
-$username = $message->from->username;
-@mkdir("data/$from_id");
-$username = $update->message->from->username;
-$truechannel = json_decode(file_get_contents("https://api.telegram.org/bot$token/getChatMember?chat_id=$channel&user_id=".$from_id));
-$tch = $truechannel->result->status;
-$state = file_get_contents("data/$from_id/state.txt");
 $message_id = $update->message->message_id;
-$Members = file_get_contents("data/Member.txt");
-$gold = file_get_contents("data/$from_id/gold.txt");
-//==============start===========
-$start =  json_encode(['keyboard'=>[
-[['text'=>'🌿دریافتـ فالو🌿'],['text'=>'حـسآبـ کـاربری🍉']],
-[['text'=>'دریافتـ لینکـ دعوتـ🌵']],
+$data = isset($message->text)?$message->text:$update->callback_query->data;
+$chat_id = isset($update->callback_query->message->chat->id)?$update->callback_query->message->chat->id:$update->message->chat->id;
+$from_id = isset($update->callback_query->message->from->id)?$update->callback_query->message->from->id:$update->message->from->id;
+$text = $update->message->text;
+$state = file_get_contents("data/$chat_id/state.txt");
+$mi = isset($update->callback_query->message->message_id)?$update->callback_query->message->message_id:null;
+$first_n = $update->message->from->first_name;
+$last_n = $update->message->from->last_name;
+$first = $update->callback_query->from->first_name;
+$last = $update->callback_query->from->last_name;
+$usernamee = $update->message->from->username;
+$username = $update->callback_query->from->username;
+//=================================================//Lock Channel//
+$truechannel = json_decode(file_get_contents("https://api.telegram.org/bot$token/getChatMember?chat_id=$channel&user_id=".$chat_id));
+$channel_check = $truechannel->result->status;
+//=================================================//System Variables//
+$user = json_decode(file_get_contents("data/user.json"),true);
+$step = json_decode(file_get_contents("data/$chat_id.json"),true);
+$coins = $step["userinfo"]["$chat_id"]["coin"];
+$invited = $step["userinfo"]["$chat_id"]["invite"];
+$state = $step["userinfo"]["$chat_id"]["state"];
+//=================================================//Buttons//
+
+$menu = json_encode(['inline_keyboard'=>[
+[['text'=>"💠 بــخش پنـل 💠","callback_data"=>"panels"]],
+[['text'=>"زیرمجموعه گیری 🏞","callback_data"=>"banner"],['text'=>"👤 حساب من","callback_data"=>"account"]],
+[['text'=>"راهنما 📌","callback_data"=>"help"],['text'=>"🛒 خرید امتیاز","callback_data"=>"buy"]],
+[['text'=>"📨 ارسال نظر و ایده 📨","callback_data"=>"idea"]],
 ],'resize_keyboard'=>true]);
-//==============================
-$button_manage = json_encode(['keyboard'=>[
-[['text'=>'امتیاز به کاربر❗️']],
-[['text'=>'بلاک کاربر'],['text'=>'آنبلاک']],
-[['text'=>'💬فوروارد'],['text'=>'🎈آمار']],
-[['text'=>'بازگشت↩️']],
-],'resize_keyboard'=>true]);
-//==============================
-$back = json_encode(['keyboard'=>[
-[['text'=>'بازگشت↩️']],
-],'resize_keyboard'=>true]);
-//==============================
-if(preg_match('/^\/([Ss]tart)(.*)/',$text)){
-if(file_exists("Block_users/$from_id.txt")){
 //
-}else{
-file_put_contents("data/$from_id/state.txt","none");
-preg_match('/^\/([Ss]tart)(.*)/',$text,$match);
-$match[2] = str_replace(" ","",$match[2]);
-$match[2] = str_replace("\n","",$match[2]);
-if($match[2] != $from_id){
-if (strpos($Members , "$from_id") == false){
-$joins = file_get_contents('data/'.$match[2]."/joins.txt");
-$check_join = explode("\n",$joins);
-if(!in_array($from_id,$check_join)){
-$aaddd = file_get_contents('data/'.$match[2]."/gold.txt");
-save('data/'.$match[2]."/gold.txt",$aaddd+50);
-SendMessage($match[2],"یک نفر با لینک شما وارد ربات شد و شما 50 فالو دریافت کردید🚶","html","true");
+$panels = json_encode(['inline_keyboard'=>[
+[['text'=>"🌟 پنل همه کاره اینستاگرام 🌟","callback_data"=>"hamekare-insta"]],
+[['text'=>"پنل لایک اینستاگرم 🌍","callback_data"=>"like-insta"],['text'=>"🌏 پنل فالوور اینستاگرام","callback_data"=>"follow-insta"]],
+[['text'=>"🔥 پنل فالوور و لایک اینستاگرم 🔥","callback_data"=>"followlike-insta"]],
+[['text'=>"بازگشت ⬅️","callback_data"=>"back"]],
+],'resize_keyboard'=>true]);
+//
+$panel = json_encode(['inline_keyboard'=>[
+[['text'=>"📈 آمار","callback_data"=>"member"]],
+[['text'=>"⏫ فروارد همگانی","callback_data"=>"forward"],['text'=>"⏫ ارسال همگانی","callback_data"=>"hamegani"]],
+[['text'=>"➖ کم کردن امتیاز","callback_data"=>"kam"],['text'=>"➕ افزودن امتیاز","callback_data"=>"add"]],
+[['text'=>"♾ امتیاز همگانی","callback_data"=>"allstate"]],
+[['text'=>"بازگشت ⬅️","callback_data"=>"back"]],
+],'resize_keyboard'=>true]);
+//
+$back = json_encode(['inline_keyboard'=>[
+[['text'=>"بازگشت ⬅️","callback_data"=>"back"]],
+],'resize_keyboard'=>true]);
+//
+$backp = json_encode(['inline_keyboard'=>[
+[['text'=>"بازگشت","callback_data"=>"backp"]],
+],'resize_keyboard'=>true]);
+//
+if(!in_array($chat_id,$user["listusers"]) == true) {
+$user["listusers"][]="$chat_id";
+$user = json_encode($user,128|256);
+file_put_contents("data/user.json",$user);
 }
-$add2 = fopen("data/$match[2]/joins.txt","a");
-fwrite($add2,"$from_id\n");
-fclose($add2);
-SendMessage($chat_id,"
-سلام ! 
+//===========================
+if($channel_check != 'member' && $channel_check != 'creator' && $channel_check != 'administrator'){
+	HectorBot('sendmessage',['chat_id'=>$from_id,'text'=>"اوپس !!!
+🎗شما در کانال ما عضو نیستید ، لطفا در کانال زیر عضو شوید و بعد ربات را دوباره /start کنید👇🏻
 
-🔹 به ربات دریافت فالو رایگان خوش آمدید.
-🔻شما برای عضویت در ربات 50 فالو رایگان دریافت کردید که میتوانید از بخش سفارش فالو , فالو رایگان دریافت کنید !
-
-❇️ شما همچنین میتوانید با عضو کردن هر یک نفر به ربات 50 فالو دریافت کنید !
-
-توجه کنید اگر ربات برای یکی از لینک های شما فالو نزد حتما اون پیج یا ایدی توسط سرور ما بلاک شده است و برای سایر لینک ها به درستی کار میکند
-@$bot_id
-","html","true",$start);
-file_put_contents("data/$from_id/state.txt","none");
-file_put_contents("data/$from_id/gold.txt","50");
-}else{
-file_put_contents("data/$from_id/state.txt","none");
-SendMessage($chat_id,"
-سلام ! 
-
-🔹 به ربات دریافت فالو رایگان خوش آمدید.
-🔻شما برای عضویت در ربات 50 فالو رایگان دریافت کردید که میتوانید از بخش سفارش فالو , فالو رایگان دریافت کنید !
-
-❇️ شما همچنین میتوانید با عضو کردن هر یک نفر به ربات 50 فالو دریافت کنید !
-
-توجه کنید اگر ربات برای یکی از لینک های شما فالو نزد حتما اون پیج یا ایدی توسط سرور ما بلاک شده است و برای سایر لینک ها به درستی کار میکند.
-@$bot_id
-","html","true",$start);
-}
-}
-}
-}
-elseif($tch != 'member' && $tch != 'creator' && $tch != 'administrator'){
-SendMessage($chat_id,"🔸برای حمایت از ما و همچنان از ربات ابتدا وارد کانال زیر شوید👇
-🆔 $channel
-🔹روی عبارت join بزنید سپس به ربات برگشته و گزینه
-🔸 /start
-🔹را ارسال کنید تا دکمه های ربات نمایش داده شوند.","html","true",$button_remov);
+💠 @shirazsocial",'parse_mode'=>"HTML",'reply_to_message_id'=>$message_id,'reply_markup'=>json_encode(['inline_keyboard'=>[
+        [['text'=>'🌐 عضویت','url'=>'https://t.me/shirazsocial']],
+    ],])
+]);
 return false;
-}	
-if($text == "حـسآبـ کـاربری🍉"){
-SendMessage($chat_id,"🔹امتیاز شما تا این لحظه $gold فالو است !","html","true");
-} 
-if($text == "🌿دریافتـ فالو🌿"){
-file_put_contents("data/$from_id/state.txt","lik");
-SendMessage($chat_id,"آیدی عددی آینستاگرام خود را وارد کنید!","html","true",$back);
 }
-if($state == "lik" && $text != "بازگشت↩️"){
-if($gold > 99){
-file_put_contents("data/$from_id/state.txt","like");
-SendMessage($chat_id,"لطفا صبر نمایید ...","html","true",$back);
-$tedad = "0";
-file_get_contents("$Apii$text");
-//===========
-$kam = $gold - 100;
-file_put_contents("data/$from_id/gold.txt","$kam");
-file_put_contents("data/$from_id/state.txt","none");
-SendMessage($chat_id,"سفارش شما انجام شد.","html","true",$back);
+//===========================
+elseif ($text =="/start"){
+if(!file_exists("data/$chat_id.json")){
+$step["userinfo"]["$chat_id"]["coin"]= "0";
+$step["userinfo"]["$chat_id"]["state"]= "none";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"درود $first_n عزیز 👋🏻
+به ربات «آلفـا پنـل» خوش اومدی 💐
+
+🔹 با استفاده از این ربات میتونی به کلی پنل اینستا ، تلگرام و... دسترسی داشته باشی اونم رایگان !!
+
+لطفا از طریق دکمه های منو اقدام فرمایید 👇🏻","HTML",$menu);
 }else{
-file_put_contents("data/$from_id/state.txt","none");
-SendMessage($chat_id,"امتیاز کافی نیست🌒!
-موجودی شما:  $gold فالو.","html","true",$back);
-}
-}
-if($text == "بازگشت↩️"){
-file_put_contents("data/$from_id/state.txt","none");
-SendMessage($chat_id,"
-سلام ! 
+Send($chat_id,"درود $first_n عزیز 👋🏻
+به ربات «آلفـا پنـل» خوش اومدی 💐
 
-🔹 به ربات دریافت فالو رایگان خوش آمدید.
-🔻شما برای عضویت در ربات 50 فالو رایگان دریافت کردید که میتوانید از بخش سفارش فالو , فالو رایگان دریافت کنید !
+🔹 با استفاده از این ربات میتونی به کلی پنل اینستا ، تلگرام و... دسترسی داشته باشی اونم رایگان !!
 
-❇️ شما همچنین میتوانید با عضو کردن هر یک نفر به ربات 50 فالو دریافت کنید !
+لطفا از طریق دکمه های منو اقدام فرمایید 👇🏻","HTML",$menu);
+}
+}
+//===========================
+elseif(strpos($text , '/start ') !== false  ) {
+$sdfg = str_replace("/start ","",$text);
+if(in_array($chat_id, $user["listusers"])) {
+Send($chat_id,"خودت میخوای زیرمجموعه خودت شی؟؟!","HTML",null);
+}else 
+{	
+$inuser = json_decode(file_get_contents("data/$sdfg.json"),true);
+$member = $inuser["userinfo"]["$sdfg"]["invite"];
+$memberplus = $member + 1;
+$members = $inuser["userinfo"]["$sdfg"]["coin"];
+$memberpluss = $members + 1;
+Send($sdfg,"🎉 کاربر $first_n$last_n با استفاده از لینک دعوتت وارد  شد
 
-توجه کنید اگر ربات برای یکی از لینک های شما فالو نزد حتما اون پیج یا ایدی توسط سرور ما بلاک شده است و برای سایر لینک ها به درستی کار میکند
-@$bot_id
-","html","true",$start);
-}
-if($text =="دریافتـ لینکـ دعوتـ🌵"){
-SendMessage($chat_id,"📩شما میتوانید با دعوت هر نفر  50 فالو دریافت کنید :
-$gold امتیاز شما🍄","html","true",$start);
-SendMessage($chat_id,"
-سلام 😄
+یه سکه بهت اضافه کردم :)
 
-این ربات رو دیدی ؟
-هر کسی رو به ربات دعوت کنی  50 فالو رایگان میده😱 
+🎈 تعداد افرادی که دعوت کرده اید : $memberplus","HTML",$menu);
+Send($chat_id,"درود $first_n عزیز 👋🏻
+به ربات «آلفـا پنـل» خوش اومدی 💐
 
-تازه جایزه عضویت به ربات هم 50 فالو رایگانه 🤤
-پس منتظر چی هستی؟
-همین الان وارد شو و پیج اینستاگرامت رو بترکون😺💥
+🔹 با استفاده از این ربات میتونی به کلی پنل اینستا ، تلگرام و... دسترسی داشته باشی اونم رایگان !!
 
-https://t.me/$bot_id?start=$from_id
-","html","true",$start);
+لطفا از طریق دکمه های منو اقدام فرمایید 👇🏻","HTML",$menu);
+$inuser["userinfo"]["$sdfg"]["invite"]="$memberplus";
+$inuser["userinfo"]["$sdfg"]["coin"]="$memberpluss";
+$inuser = json_encode($inuser,true);
+file_put_contents("data/$sdfg.json",$inuser);
+$step["userinfo"]["$chat_id"]["file"]="none";
+$step["userinfo"]["$chat_id"]["coin"]="0";
+$step["userinfo"]["$chat_id"]["invite"]="0";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);	
+}}
+
+if($data =="panels"){
+	Edit($chat_id,$mi,"HTML","لطفا یکی از پنل های زیر را انتخاب کنید 👇🏻",$panels);
 }
-//=========================================
- if($text == 'مدیر' and $from_id == $admin){
-  SendMessage($chat_id,"به پنل مدیریت خوش اومدی","html","true",$button_manage);
-  }
-  elseif($text == '🎈آمار' and $from_id == $admin){
-	$txtt = file_get_contents('data/Member.txt');
-    $member_id = explode("\n",$txtt);
-    $mmemcount = count($member_id) -1;
-	SendMessage($chat_id,"کل کاربران: $mmemcount نفر","html","true");
-	}
-  elseif($text == '💬فوروارد' and $from_id == $admin){
-	file_put_contents("data/".$from_id."/state.txt","s2a fwd");
-	SendMessage($chat_id,"پیام مورد نظر را فوروارد کنید","html","true");
-	}
-	elseif($state == 's2a fwd'){
-	file_put_contents("data/".$from_id."/state.txt","none");
-	SendMessage($chat_id,"پیام شما در صف ارسال قرار گرفت.","html","true",$button_manage);
-	$all_member = fopen( "data/Member.txt", 'r');
-		while( !feof( $all_member)) {
- 			$user = fgets( $all_member);
-bomb_Source('ForwardMessage',[
- 'chat_id'=>$user,
- 'from_chat_id'=>$admin,
- 'message_id'=>$message_id
- ]);
- }
+//===========================
+if($data =="back"){
+	Edit($chat_id,$mi,"HTML","به منوی اصلی برگشتی 👍🏻",$menu);
 }
- if($text == 'مدیریت' and $from_id == $admin1){
-  SendMessage($chat_id,"به پنل مدیریت خوش اومدی","html","true",$button_manage);
-  }
-  elseif($text == '🎈آمار' and $from_id == $admin1){
-	$txtt = file_get_contents('data/Member.txt');
-    $member_id = explode("\n",$txtt);
-    $mmemcount = count($member_id) -1;
-	SendMessage($chat_id,"کل کاربران: $mmemcount نفر","html","true");
-	}
-  elseif($text == '💬فوروارد' and $from_id == $admin1){
-	file_put_contents("data/".$from_id."/state.txt","s2a fwd");
-	SendMessage($chat_id,"پیام مورد نظر را فوروارد کنید","html","true");
-	}
-	elseif($state == 's2a fwd'){
-	file_put_contents("data/".$from_id."/state.txt","none");
-	SendMessage($chat_id,"پیام شما در صف ارسال قرار گرفت.","html","true",$button_manage);
-	$all_member = fopen( "data/Member.txt", 'r');
-		while( !feof( $all_member)) {
- 			$user = fgets( $all_member);
-bomb_Source('ForwardMessage',[
- 'chat_id'=>$user,
- 'from_chat_id'=>$admin1,
- 'message_id'=>$message_id
- ]);
- }
-} 
- elseif($text == 'بلاک کاربر' and $from_id == $admin){
-file_put_contents("data/".$from_id."/state.txt","Block");
-SendMessage($chat_id,"آیدی عددی را ارسال کنید :","html","true");
+//===========================
+if($data =="backp"){
+	Edit($chat_id,$mi,"HTML","به پنل برگشتی 👍🏻",$panel);
 }
-elseif($text == 'آنبلاک' and $from_id == $admin){
-file_put_contents("data/".$from_id."/state.txt","UnBlock");
-SendMessage($chat_id,"آیدی عددی را ارسال کنید:","html","true",$back);
+//===========================
+elseif($data =="idea"){
+$step["userinfo"]["$chat_id"]["state"]="ideas";
+    $step = json_encode($step,true);
+    file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"🎗دوست عزیز لطفا اگر ایده یا نظری برای آپدیت و یا تغییری برای بهبودی ربات دارید که فکر میکنید مفید است را ارسال کنید ...","HTML",$back);
 }
-if($state =="Block"){
-file_put_contents("data/$from_id/state.txt","none");
-file_put_contents("Block_users/$text.txt","true");
-SendMessage($chat_id,"بلاک شد !","html","true",$button_manage);
+if($state =="ideas" && $data != "back"){
+	$step["userinfo"]["$chat_id"]["state"]="none";
+    $step = json_encode($step,true);
+    file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"با تشکر از شما 🌹","HTML",$back);
+Send($dev,"یه پیام از طرف کاربر @$username دارید🌱
+___________________________
+$text
+___________________________","HTML",$back);
 }
-if($state =="UnBlock"){
-file_put_contents("data/$from_id/state.txt","none");
-unlink("Block_users/$text.txt");
-SendMessage($chat_id,"بلاک شد !","html","true",$button_manage);
+//===========================
+if($data =="hamekare-insta"){
+if($step["userinfo"]["$chat_id"]["coin"] >= 50){
+$coinupp = $coins -50;
+$step["userinfo"]["$chat_id"]["coin"] = $coinupp;
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Edit($chat_id,$mi,"HTML","تبریک میگم شما موفق به دسترسی به این پنل شدید 🥳
+
+🌙پنل همه کاره ی اینستاگرام :
+🌐 www.igtools.net",$back);
+}else{
+Edit($chat_id,$mi,"HTML","دوست عزیز شما قادر به دسترسی به این پنل نیستید‼️
+
+📛 لطفا ابتدا امتیاز خود را برای این بخش جمع آوری کنید و سپس مجدد تلاش کنید ♻️
+
+🚩 مقدار امتیاز این پنل : 50
+🔅تعداد سکه های شما : $coins",$back);
 }
-//=======================================
- elseif($text == 'بلاک کاربر' and $from_id == $admin1){
-file_put_contents("data/".$from_id."/state.txt","Block");
-SendMessage($chat_id,"آیدی عددی را ارسال کنید :","html","true");
 }
-elseif($text == 'آنبلاک' and $from_id == $admin1){
-file_put_contents("data/".$from_id."/state.txt","UnBlock");
-SendMessage($chat_id,"آیدی عددی را ارسال کنید:","html","true",$back);
+//
+if($data =="follow-insta"){
+if($step["userinfo"]["$chat_id"]["coin"] >= 15){
+$coinupp = $coins -15;
+$step["userinfo"]["$chat_id"]["coin"] = $coinupp;
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Edit($chat_id,$mi,"HTML","تبریک میگم شما موفق به دسترسی به این پنل شدید 🥳
+
+🌙پنل فالوور اینستاگرام :
+🌐 www.mediahile.com - www.silvertakip.net",$back);
+}else{
+Edit($chat_id,$mi,"HTML","دوست عزیز شما قادر به دسترسی به این پنل نیستید‼️
+
+📛 لطفا ابتدا امتیاز خود را برای این بخش جمع آوری کنید و سپس مجدد تلاش کنید ♻️
+
+🚩 مقدار امتیاز این پنل : 15
+🔅تعداد سکه های شما : $coins",$back);
 }
-if($state =="Block" && $text !="بازگشت↩️"){
-file_put_contents("data/$from_id/state.txt","none");
-file_put_contents("Block_users/$text.txt","true");
-SendMessage($chat_id,"بلاک شد !","html","true",$button_manage);
 }
-if($state =="UnBlock" && $text !="بازگشت↩️"){
-file_put_contents("data/$from_id/state.txt","none");
-unlink("Block_users/$text.txt");
-SendMessage($chat_id,"بلاک شد !","html","true",$button_manage);
+//
+if($data =="like-insta"){
+if($step["userinfo"]["$chat_id"]["coin"] >= 15){
+$coinupp = $coins -15;
+$step["userinfo"]["$chat_id"]["coin"] = $coinupp;
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Edit($chat_id,$mi,"HTML","تبریک میگم شما موفق به دسترسی به این پنل شدید 🥳
+
+🌙برنامه لایک اینستاگرام :
+🌐 http://dl.wooda.ir/Leetgram.5.9.apk",$back);
+}else{
+Edit($chat_id,$mi,"HTML","دوست عزیز شما قادر به دسترسی به این پنل نیستید‼️
+
+📛 لطفا ابتدا امتیاز خود را برای این بخش جمع آوری کنید و سپس مجدد تلاش کنید ♻️
+
+🚩 مقدار امتیاز این پنل : 15
+🔅تعداد سکه های شما : $coins",$back);
 }
-//=========================================
-if($text == "امتیاز به کاربر❗️" && $from_id == $admin){
-file_put_contents("data/$from_id/state.txt","sek");
-SendMessage($chat_id,"آیدی عددی کاربر را وارد کنید :","html","true",$back);
-} 
-if($state == "sek" && $text != "بازگشت↩️"){
-file_put_contents("data/$from_id/state.txt","tedad_eh");
-file_put_contents("data/$from_id/karba.txt","$text");
-SendMessage($chat_id,"چقدر کم کنم ؟
-دقت کن چون اگر بیشتر امتیازی که داره ازش کم کنم امتیازش منفی میشه :/","html","true",$back);
 }
-if($state =="tedad_eh" && $text != "بازگشت↩️"){
-$karbar = file_get_contents("data/$from_id/karba.txt");
-$bia = $gold -$text ;
-file_put_contents("data/$karbar/gold.txt","$bia");
-SendMessage($chat_id,"میزان $text سکه به کاربر اهدا شد !","html","true",$back);
+//
+if($data =="followlike-insta"){
+if($step["userinfo"]["$chat_id"]["coin"] >= 25){
+$coinupp = $coins -25;
+$step["userinfo"]["$chat_id"]["coin"] = $coinupp;
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Edit($chat_id,$mi,"HTML","تبریک میگم شما موفق به دسترسی به این پنل شدید 🥳
+
+🌙پنل لایک و فالوور اینستاگرام :
+🌐 www.insfollow.com",$back);
+}else{
+Edit($chat_id,$mi,"HTML","دوست عزیز شما قادر به دسترسی به این پنل نیستید‼️
+
+📛 لطفا ابتدا امتیاز خود را برای این بخش جمع آوری کنید و سپس مجدد تلاش کنید ♻️
+
+🚩 مقدار امتیاز این پنل : 25
+🔅تعداد سکه های شما : $coins",$back);
 }
-//========================================
-if($text == "امتیاز به کاربر❗️" && $from_id == $admin1){
-file_put_contents("data/$from_id/state.txt","sek");
-SendMessage($chat_id,"آیدی عددی کاربر را وارد کنید :","html","true",$back);
 }
-if($state == "sek" && $text != "بازگشت↩️"){
-file_put_contents("data/$from_id/state.txt","tedad_eh");
-file_put_contents("data/$from_id/karba.txt","$text");
-SendMessage($chat_id,"چقدر کم کنم ؟
-دقت کن چون اگر بیشتر امتیازی که داره ازش کم کنم امتیازش منفی میشه :/","html","true",$back);
+//===========================
+if($data == "account"){
+HectorBot('editmessagetext', [
+'chat_id'=>$chat_id,
+'text' => "ℹ️ اطلاعات حساب کاربری شما :",
+'message_id'=>$mi,
+'disable_web_page_preview'=>true,
+'parse_mode' => "HTML",
+'reply_markup'=>json_encode(['inline_keyboard'=>[
+[['text'=>'نام ▪️','callback_data'=>'amir'],['text'=>"$first",'callback_data'=>'amir']],
+[['text'=>'ایدی ▫️','callback_data'=>'amir'],['text'=>"@$username",'callback_data'=>'amir']],
+[['text'=>'ایدی عددی ▪️','callback_data'=>'amir'],['text'=>"$chat_id",'callback_data'=>'amir']],
+[['text'=>'امتیاز ▫️','callback_data'=>'amir'],['text'=>"$coins",'callback_data'=>'amir']],
+[['text'=>'زیرمجموعه ▪️','callback_data'=>'amir'],['text'=>"$invited",'callback_data'=>'amir']],
+[['text'=>'بازگشت ⬅️','callback_data'=>'back']],
+],])
+]);
 }
-if($state =="tedad_eh" && $text != "بازگشت↩️"){
-$karbar = file_get_contents("data/$from_id/karba.txt");
-$bia = $gold -$text ;
-file_put_contents("data/$karbar/gold.txt","$bia");
-SendMessage($chat_id,"میزان $text سکه به کاربر اهدا شد !","html","true",$back);
+//===========================
+if($data =="help"){
+	Edit($chat_id,$mi,"HTML","به بخش راهنما خوش اومدی🌿
+
+🌵خب همونجور که از اسم این ربات پیداست ، این یه ربات با کلی پنل هست.
+
+❤️ از پنل لایک و فالو و ویو و... اینستاگرام بگیر تاااا پنل تلگرام و کلی چیزای دیگه 💜
+
+🆓 جالب اینجاست که همه ی پنل ها توی ربات رایگان هستن و نیازی نیست بخاطر بدست آوردن اونها پولی پرداخت کنی و خیلی راحت میتونی با زیرمجموعه گیری اونهارو داشته باشی !",$menu);
 }
- $user = file_get_contents('data/Member.txt');
-    $members = explode("\n",$user);
-    if (!in_array($chat_id,$members)){
-      $add_user = file_get_contents('data/Member.txt');
-      $add_user .= $chat_id."\n";
-     file_put_contents('data/Member.txt',$add_user);
-    }
+//===========================
+if($data =="buy"){
+	Edit($chat_id,$mi,"HTML","بزودی ...",$back);
+}
+//===========================
+if($data =="banner"){
+SendPhoto($chat_id,"$pic","🛸 ربات آلفــا پنل رسید ...
+
+💡یه ربات با کلی پنل های جور با جور برای انواع برنامه ها و کارا مثل اینستا و تلگرام و... اونم بصورت کاملا رایگان !!
+
+💥همین حالا استارت کن تا تو هم پنل مفتی بگیری💥
+
+🔗 T.me/$BotId?start=$chat_id","","");
+Send($chat_id,"بنر بالا با لینک اختصاصی مخصوص شماست 🙄
+
+با انتشار بنر بالا برای خود زیرمجموعه جمع کنید و از هر زیرمجموعه 1 امتیاز بگیرید 🌸","HTML",$back);
+}
+//===========================
+elseif($text =="/panel" && $chat_id == $dev){
+    Send($chat_id,"به پنل خوش اومدی","HTML",$panel);
+}
+//===========================
+$memberbot = count($user["listusers"]);
+if($data =="member" && $chat_id == $dev){
+    Edit($chat_id,$mi,"HTML","👀 آمار ربات شما : $memberbot",$backp);
+}
+//===========================
+if($data =="forward" && $chat_id == $dev){
+$step["userinfo"]["$chat_id"]["state"]= "forward";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Edit($chat_id,$mi,"HTML","📩 لطفا پیام مورد نظر را بفرستید ...",null);
+}
+if($step["userinfo"]["$chat_id"]["state"] == "forward" && $data !="backp"){
+foreach($user["listusers"] as $userpm){
+ForwardMessage($userpm,$dev,$message_id);
+}
+$step["userinfo"]["$chat_id"]["state"]= "none";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"پیام شما با موفقیت فروارد شد ✅","HTML",$panel);
+}
+//===========================
+if($data =="hamegani" && $chat_id == $dev){
+$step["userinfo"]["$chat_id"]["state"]= "hamegani";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Edit($chat_id,$mi,"HTML","📩 لطفا پیام مورد نظر را بفرستید ...",null);
+}
+if($step["userinfo"]["$chat_id"]["state"] == "hamegani" && $data !="backp"){
+foreach($user["listusers"] as $userpm){
+Edit($userpm,$text,"HTML",null);
+}
+$step["userinfo"]["$chat_id"]["state"]= "none";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"پیام شما با موفقیت ارسال شد ✅","HTML",$panel);
+}
+$stepT = json_decode(file_get_contents("data/$text.json"),true);
+//===========================
+if($data =="kam" &&  $chat_id == $dev){
+$step["userinfo"]["$chat_id"]["state"]="sharjn";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"❎ مقدار امتیاز رو به عدد لاتین وارد کنید ...","HTML",null);
+}
+if($state =="sharjn" && $data != "backp"){
+$step["userinfo"]["$chat_id"]["state"]="sharj3n";
+$step["userinfo"]["$chat_id"]["cha2s"]="$text";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"❎ ایدی عددی کاربر را وارد کنید ...","HTML",null);
+}
+if($state =="sharj3n" && $data != "backp"){
+$njhaj = $step["userinfo"]["$chat_id"]["cha2s"];
+$codsan = $coins -$njhaj;
+$stepT["userinfo"]["$text"]["coin"]=$codsan;
+$stepT["userinfo"]["$text"]["state"]="none";
+$stepT = json_encode($stepT,true);
+$step["userinfo"]["$chat_id"]["state"]="none";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+file_put_contents("data/$text.json",$stepT);
+Send($chat_id,"با موفقیت کم شد ✅","HTML",$panel);
+}
+//===========================
+
+if($data =="add" && $chat_id == $dev){
+$step["userinfo"]["$chat_id"]["state"]="sharj";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"❎ مقدار امتیاز رو به عدد لاتین وارد کنید ...","HTML",null);
+}
+if($state =="sharj" && $data != "backp"){
+$step["userinfo"]["$chat_id"]["state"]="sharj3";
+$step["userinfo"]["$chat_id"]["cha2s"]="$text";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+Send($chat_id,"❎ ایدی عددی کاربر را وارد کنید ...","HTML",null);
+}
+if($state =="sharj3" && $data != "backp"){
+$njhaj = $step["userinfo"]["$chat_id"]["cha2s"];
+$codsan = $coins +$njhaj;
+$stepT["userinfo"]["$text"]["coin"]=$codsan;
+$stepT["userinfo"]["$text"]["state"]="none";
+$stepT = json_encode($stepT,true);
+$step["userinfo"]["$chat_id"]["state"]="none";
+$step = json_encode($step,true);
+file_put_contents("data/$chat_id.json",$step);
+file_put_contents("data/$text.json",$stepT);
+Send($chat_id,"با موفقیت اضافه شد ✅","HTML",$panel);
+}
+unlink("error_log");
+
 ?>
